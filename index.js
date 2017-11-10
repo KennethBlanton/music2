@@ -2,24 +2,7 @@ var app = require('express')();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var fs = require('fs');
- 
 
-// var html = fs.readFileSync('index.html', 'utf8');
-// var css = fs.readFileSync('assets/css/index.css', 'utf8');
-// var js = fs.readFileSync('assets/js/index.js', 'utf8');
-// // fs.readFile('index.html', 'utf8', function(err, contents) {
-// // 	let pattern = '<style>';
-// //      console.dir(contents.replace(pattern));
-// // });
-// // console.log(contents);
-// html.replace('mycss', css);
-// html.replace('myjs', js);
-// ;
-// app.get('/', function(req, res){
-//   	res.sendFile(__dirname + '/index.html')
-//   	res.sendFile(__dirname + '/assets/js/index.js');
-// 	res.sendFile(__dirname + '/assets/css/index.css');
-// });
 var sounds;
 
 io.on('connection', function(socket){
@@ -31,6 +14,7 @@ io.on('connection', function(socket){
 
 io.on('connection', function(socket){
   socket.on('noteChange', function(msg){
+    console.log(msg.gridSize);
     io.emit('noteChange', msg);
   });
   socket.on('soundUpdate', function(msg){
@@ -51,9 +35,11 @@ io.on('connection', function(socket){
   });
 });
 
+
 http.listen(3001, function(){
   console.log('listening on *:3000');
 });
+
 
 // var fs = require('fs');
 

@@ -41,11 +41,64 @@ class Sound {
     }
  
 }
-function changeStuff(e) {
-    e.preventDefault();
+// function changeStuff(e) {
+//     e.preventDefault();
+// }
+
+class GridManager {
+    constructor(string) {
+        if(string == 'short') {
+            gridSize = 'short'
+        } else if(string == 'medium') {
+            gridSize = 'medium'
+        } else if (string == 'long') {
+            gridSize = 'long'
+        }
+
+    }
+    createGrid() {
+        for (let i = 1; i <= GRID_HEIGHT*GRID_WIDTH; i++){
+            let block = document.createElement('div');
+            let effect = document.createElement('div');
+            effect.className = ('effect');
+            block.className = ('block new');
+            block.id = i; 
+            // effect.id = i
+            block.setAttribute('data-frequency', BASE_FREQUENCY*( Math.pow(A_VAL, SCALE[count] )));
+            sounds[block.id] = {note:block,effect:effect,play:false};
+            if(block.id % GRID_WIDTH == 0 && count !== GRID_HEIGHT) {
+                count++;
+            }
+            block.style.width = (100/GRID_WIDTH)-.1  + "%";
+            block.style.height = (100/GRID_HEIGHT)- .22 + 'vh';
+            effect.style.width = (100/GRID_WIDTH)-.1  + "%";
+            effect.style.height = (100/GRID_HEIGHT)- .22 + 'vh';
+            document.querySelector('.effects').appendChild(effect);
+            document.querySelector('.blocks').appendChild(block);
+        }
+        console.log(sounds);
+        noteCount = document.querySelectorAll('.block').length;
+    }
+    controlInterval(string) {
+        
+
+        setInterval(
+            function() {
+                // console.log('ran')
+                for (var i = 1; i < noteCount+1; i++) {
+                    // sounds[i].note.classList.remove('playing');
+                    sounds[i].effect.classList.remove('playing');
+                }
+                play(sounds);
+            }, TIME
+        );
+    }
+
 }
 
-let GRID_WIDTH = 32 ; // changes affect columns aka measures
+let grid;
+
+let GRID_WIDTH = 12 ; // changes affect columns aka measures
 
 const BASE_FREQUENCY =  1174.66; // controls starting note currently set to the key of G
 // const SCALE = [0,-2,-3,-5,-7,-8,-10,-12]; // note dispersions relative to scale formula.
@@ -81,6 +134,7 @@ socket.addEventListener('noteChange', (id)=>{
 });
 socket.addEventListener('loaded', (soundObj)=>{
     console.log(soundObj['1'])
+    console.log(sounds);
     if(soundObj) {
        for (var i = 1; i < noteCount+1; i++) {
            if(sounds[i].play !== soundObj[i].play) {
@@ -96,21 +150,9 @@ socket.addEventListener('loaded', (soundObj)=>{
    // console.log(sounds);
 });
 
-for (let i = 1; i <= GRID_HEIGHT*GRID_WIDTH; i++){
-    let block = document.createElement('div');
-    block.className = ('block new');
-    block.id = i; 
-    block.setAttribute('data-frequency', BASE_FREQUENCY*( Math.pow(A_VAL, SCALE[count] )));
-    sounds[block.id] = {note:block,play:false};
-    if(block.id % GRID_WIDTH == 0 && count !== GRID_HEIGHT) {
-        count++;
-    }
-    block.style.width = (100/GRID_WIDTH)-.1  + "%";
-    block.style.height = (100/GRID_HEIGHT)- .22 + 'vh';
-    document.body.appendChild(block);
-}
 
-let noteCount = document.querySelectorAll('.block').length;
+
+let noteCount;
 let context = new (window.AudioContext || window.webkitAudioContext)();
 
 let notes = document.querySelectorAll('.block');
@@ -121,11 +163,52 @@ let notes = document.querySelectorAll('.block');
 //     sounds[i].note.classlist.add('active');
 //     sounds[i].play = true
 // }
-
 document.body.addEventListener('click',(e) => {
+    console.log(e.target, e.currentTarget);
     if(e.target.classList.contains('block')) {
         socket.emit('noteChange', e.target.id);
-    }   
+    } 
+    if(e.target.classList.contains('single-play')) {
+        console.log('working');
+    socket.emit('playMode', 'single-play')
+    playMode = true;
+    e.target.classList.add('selected')
+    } else if(e.target.classList.contains('multi-play')) {
+        socket.emit('playMode', 'multi-play');
+        playMode = true;
+        e.target.classList.add('selected')
+    }
+    if(e.target.classList.contains('short')) {
+        GRID_WIDTH = 8;
+        gridSize = true;
+        e.target.classList.add('selected')
+    } else if(e.target.classList.contains('medium')) {
+        GRID_WIDTH = 16;
+        gridSize = true;
+        e.target.classList.add('selected')
+    } else if(e.target.classList.contains('long')) {
+        GRID_WIDTH = 32;
+        gridSize = true;
+        e.target.classList.add('selected')
+    }
+    if(e.target.classList.contains('go-button')) {
+        if(gridSize && playMode) {
+            document.querySelector('.overlay').classList.add('hide');
+            grid = new GridManager();
+            console.log(sounds);
+            grid.createGrid();
+            grid.controlInterval();
+        } else {
+            if(!document.querySelector('.warning')) {  
+                let warning = document.createElement('h1');
+                warning.innerHTML = `You missed one!`;
+                warning.className = 'warning'
+                document.querySelector('.overlay').appendChild(warning);
+            } else {
+                document.querySelector('.warning').innerHTML = 'Still missing one';
+            }
+        }
+    }  
 });
 function playSound(note) {
     if(note.play) {
@@ -136,9 +219,13 @@ function playSound(note) {
     } 
 }
 function play(sounds) {
+    console.log(sounds)
         for (let i = 0; i < GRID_HEIGHT; i++) {
-            playSound(sounds[GRID_WIDTH *i +1 + beat])
-            sounds[GRID_WIDTH *i +1 + beat].note.classList.add('playing')
+             sounds[GRID_WIDTH *i +1 + beat].effect.classList.add('playing')
+            playSound(sounds[GRID_WIDTH *(i) +1 + beat])
+            // sounds[GRID_WIDTH *i +1 + beat].note.classList.add('playing');
+           
+
         }
         if(beat < GRID_WIDTH -1) {
             beat++;
@@ -146,15 +233,17 @@ function play(sounds) {
             beat = 0;
         }
 } 
-setInterval(
-    function() {
-        for (var i = 1; i < noteCount+1; i++) {
-            sounds[i].note.classList.remove('playing');
-        }
-        play(sounds);
-    }, TIME);
+
 
 (function() {
-    console.log('ran');
+    // console.log('ran');
     socket.emit('loaded', sounds);
 })();
+let playMode,gridSize;
+// document.querySelector('.button').addEventListener('click',function(e) {
+//     console.log(e.target);
+
+// })
+
+
+
