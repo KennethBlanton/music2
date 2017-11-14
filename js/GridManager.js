@@ -28,19 +28,44 @@ class GridManager {
     controlInterval(string) {
         if(string == 'start') {
             this.state.tempo = setInterval(
-                function() {
+                ()=> {
                     // console.log('ran')
                     for (var i = 1; i < app.state.noteCount+1; i++) {
                         // sounds[i].note.classList.remove('playing');
                         app.state.sounds[i].effect.classList.remove('playing');
                     }
-                    app.play(app.state.sounds);
+                    this.play(app.state.sounds);
                 }, app.state.time
             );
         } else {
             clearInterval(this.state.tempo);
         }
        
+    }
+    playSound(note) {
+        // console.log(note);
+        if(note.play) {
+            let sound = new Sound(app.state.context);
+            let value = note.note.dataset.frequency;
+            sound.play(value);
+            setTimeout(sound.stop(), app.state.time*app.state.gridWidth);
+        } 
+    }
+    play(sounds) {
+        for (let i = 0; i < app.state.scale.length; i++) {
+            // console.log(app.state.sounds);
+            // console.log(this.state.sounds[app.state.gridWidth *i +1 + app.state.beat].effect)
+             app.state.sounds[app.state.gridWidth *i +1 + app.state.beat].effect.classList.add('playing')
+            this.playSound(sounds[app.state.gridWidth *(i) +1 + app.state.beat])
+            // sounds[app.state.gridWidth *i +1 + app.state.beat].note.classList.add('playing');
+           
+
+        }
+        if(app.state.beat < app.state.gridWidth -1) {
+            app.state.beat++;
+        } else {
+            app.state.beat = 0;
+        }
     }
 
 }

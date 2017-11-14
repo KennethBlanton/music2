@@ -3,55 +3,76 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var fs = require('fs');
 
-var sounds;
+var sessions = {}
+
+// io.on('connection', function(socket){
+//   console.log('a user connected');
+//   socket.on('disconnect', function(){
+//     console.log('user disconnected');
+//   });
+// });
 
 io.on('connection', function(socket){
-  console.log('a user connected');
-  socket.on('disconnect', function(){
-    console.log('user disconnected');
-  });
-});
 
-io.on('connection', function(socket){
-  socket.on('noteChange', function(msg){
-    console.log(msg.gridSize);
-    io.emit('noteChange', msg);
-  });
+    socket.on('noteChange', function(msg){
+        // console.log(msg.session);
+        // console.log(io.sockets.adapter.rooms[msg.session]);
+        io.emit('noteChange', msg);
+        // io.emit('rooms', io.sockets);
+        // io.to(msg.session).emit('noteChange', msg);
+        // io.to(io.sockets.adapter.rooms[msg.session]).emit('noteChange', msg);
+    });
+
   socket.on('soundUpdate', function(msg){
-  	
-    sounds = msg;
-    console.log(sounds['1']);
+      // console.log(sessions[msg.session]);
 
+      sessions[msg.session] = msg.sounds;
   });
+
   socket.on('loaded', function(msg){
-  console.log(!sounds);
-  	console.log(msg['1']);
-  	if(!sounds) {
-  		sounds = msg;
+    // console.log(msg.session);
+  	if(!sessions[msg.session]) {
+  		sessions[msg.session] = msg.sounds;
+      socket.join(msg.session);
+      console.log(msg.session)
   	} else {
-  		io.emit('loaded', sounds);
+      socket.join(msg.session)
+  		io.sockets.in(sessions[msg.session]).emit('loaded', sessions[msg.session]);
   	}
+    // console.log(sessions);
    
   });
+  socket.on('createSession',function(msg) {
+    // console.log(msg)
+    if(sessions[msg]) {
+      io.emit('createSession', {valid:false,name:msg});
+    } else {
+      io.emit('createSession', {valid:true,name:msg});
+    }
+  })
+  socket.on('joinSession',function(msg) {
+    // console.log(msg)
+    if(sessions[msg]) {
+      io.emit('joinSession', {valid:true,name:msg, sounds:sessions[msg]});
+    } else {
+      io.emit('joinSession', {valid:false,name:msg});
+    }
+  })
+  // socket.on('multipleNote', function(msg){
+  //   for (var i = 0; i < msg.notes.length; i++) {
+  //    if(sessions[msg.session][msg.note[i]] = 
+  //   }
+    
+
+  // })
+  socket.on('rooms', function() {
+    console.log('recieved');
+    let obj = io.sockets.adapter.rooms
+    io.emit('rooms', obj);
+  })
 });
 
 
 http.listen(3001, function(){
   console.log('listening on *:3000');
 });
-
-
-// var fs = require('fs');
-
-// // Change the content of the file as you want
-// // or either set fileContent to null to create an empty file
-// var fileContent = "Hello World!";
-
-// // The absolute path of the new file with its name
-// var filepath = "mynewfile.txt";
-
-// fs.writeFile(filepath, fileContent, (err) => {
-//     if (err) throw err;
-
-//     console.log("The file was succesfully saved!");
-// }); 

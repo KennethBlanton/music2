@@ -1,5 +1,6 @@
 var url = 'http://localhost:3001';
 var socket = io.connect(url);
+let app;
 
 // let grid;
 // let GRID_WIDTH = 12 ; 

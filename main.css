@@ -13,6 +13,7 @@ body {
     display:flex;
     flex-wrap:wrap;
     position:absolute;
+    cursor: arrow;
 }
 .overlay {
     width:100vw;
@@ -22,7 +23,7 @@ body {
     background:skyblue;
     text-align:center;
 }
-.go-button {
+.go-button,.createSession,.joinSession {
     width:25%;
     margin: 0 auto;
 }
@@ -43,6 +44,9 @@ body {
 }
 .button.selected {
     opacity:.7;
+}
+.createSession,.joinSession {
+    margin-top:30px;
 }
 .block {
     width:24.9vw;
@@ -66,15 +70,16 @@ body {
 	opacity: .5;
     content: "";
     position: relative;
-    height: 0px;
+    height: 50px;
     border-width:0px;
     border-color:white;
     border-style:solid;
-    width: 0px;
+    width: 50px;
     display: inline-block;
     border-radius: 100%;
     box-shadow: 0px 0px 10px white;
     z-index:100;
+    transform: scale(0);
     /*box-shadow: 0px 0px 20px white;*/
   /* */
     /*transition:2s;*/
@@ -103,9 +108,24 @@ body {
 .block.active {
 	background: #ADFF2F;
 }
+.block.active.pink {
+    background:#ff0099;
+}
+.block.active.yellow {
+    background:#f3f315;
+}
+.block.active.green {
+    background:#83f52c;
+}
+.block.active.orange {
+    background:#ff6600;
+}
+.block.active.blue {
+    background:#6e0dd0;
+}
 .block.active.new::before {
-	/*box-shadow: 2px 2px 5px 5px white;*/
-	animation: beforemove 6s 1;
+	animation: beforemove 1s 1;
+    opacity:.5;
 }
 /*.block.active::after {
 	animation: aftermove 4s 1;
@@ -146,23 +166,16 @@ form {
     opacity:.5;
 }
 @keyframes beforemove {
-    0%   {
-    	height: 0px;
-		width:0px;
-		border-width:0px;
-		opacity:.5;
-		border-width:10px;
+    from   {
+    	opacity:.5;
     }
-    25% {
-    	opacity:0;
-    	
+    to {
+    	transform: scale(10);
+        transform: scale(10);
+        border-width:30px;
+        opacity:0;
     }
-    100% {
-    	height: 1000vh;
-		width:1000vh;
-		border-width:80px;
-		opacity:0;
-    }
+
 }
 
 /*@keyframes neon {
