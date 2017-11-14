@@ -24,9 +24,10 @@ io.on('connection', function(socket){
     });
 
   socket.on('soundUpdate', function(msg){
-      // console.log(sessions[msg.session]);
+     
 
       sessions[msg.session] = msg.sounds;
+       console.log(sessions[msg.session].sounds);
   });
 
   socket.on('loaded', function(msg){
@@ -37,7 +38,7 @@ io.on('connection', function(socket){
       console.log(msg.session)
   	} else {
       socket.join(msg.session)
-  		io.sockets.in(sessions[msg.session]).emit('loaded', sessions[msg.session]);
+  		io.emit('loaded', sessions[msg.session]);
   	}
     // console.log(sessions);
    

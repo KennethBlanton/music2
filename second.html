@@ -9,51 +9,87 @@
 	<div class="effects"></div>
 	<div class="blocks">
 	</div>
+	<div class="toggleMenu"></div>
+	<div class="options">
+		<div class="keyChange">
+			<h4>Change Key</h4>
+			<div class="select-style">
+			  <select class="select">
+			    <option value="G">G</option>
+			    <option value="A">A</option>
+			    <option value="A#">A#</option>
+			    <option value="B">B</option>
+			    <option value="C">C</option>
+			    <option value="C#">C#</option>
+			    <option value="D">D</option>
+			    <option value="D#">D#</option>
+			    <option value="E">E</option>
+			    <option value="F">F</option>
+			    <option value="F#">F#</option>
+			  </select>
+			</div>
+		</div>
+		<div class="interval-slider">
+			<h4>Select BPM</h4>
+			<h4 class="current-bpm"></h4>
+			<input type="range" min="60" max="160" value="120" class="slider">
+		</div>
+		<div class="colors">
+			<div class="color yellow" data-color="yellow"></div>
+			<div class="color blue" data-color="blue"></div>
+			<div class="color green" data-color="green"></div>
+			<div class="color pink" data-color="pink"></div>
+			<div class="color orange" data-color="orange"></div>
+		</div>
+	</div>
 	<div class="overlay">
 		<div class="first-menu">
-			<h1>Hey let's play some music</h1>
+			<h3>Hey let's play some music</h3>
 			<div class="buttons">
-				<div class="button first single-play">
-					AntiSocial
+				<div class="button first single-play" data-play="single">
+					Alone
 				</div>
-				<div class="button first multi-play">
-					Social
+				<div class="button first multi-play" data-play="multi">
+					With rando's
 				</div>	
 			</div>
 		</div>
+		<div class="third-menu">
+			<h3> Or...do you want to invite friends to your group or join a friends group?</h3>
+			<div class="buttons ">
+				<div class="button expand" data-open="create">create session</div>
+				<div class="button expand" data-open="join">join session</div>
+			</div>
+			<div class="join">
+				<input type="text"  name="joinSession">
+				<div class="button session" data-session="join">Join</div>
+			</div>
+			<div class="create">
+				<input type="text"  name="createSession">
+				<div class="button session" data-session="create">Create</div>
+			</div>
+			<h5 class='sessionMessage'></h5>
+			
+		</div>
 		<div class="second-menu">
-			<h1>So before we just start clicking how long do you want the song to be?</h1>
+			<h3>So before we just start clicking how long do you want the song to be?</h3>
 			<div class="buttons">
-				<div class="button second short">short</div>
-				<div class="button second medium">medium</div>
-				<div class="button second long">long</div>
+				<div class="button second short" data-width="8">short</div>
+				<div class="button second medium" data-width="16">medium</div>
+				<div class="button second long" data-width="32">long</div>
 			</div>
 		</div>
 		<div class="third-menu">
-			<h1>Do you want to invite friends to your group or join a friends group</h1>
-			<div class="buttons">
-				<div class="button createSessionExpand">create session</div>
-				<div class="button createSessionExpand">join session</div>
-			</div>
-			<div class="buttons sessions">
-				<input type="text" name="createSession">
-				<input type="text" name="joinSession">
-				<h5 class='sessionMessage'></h5>
-			</div>
-			<div class="button createSession">Create</div>
-			<div class="button joinSession">Join</div>
+			<h3>So click and have fun! the options are on the top</h3>
 		</div>
-		<div class="third-menu">
-			<h1>So click and have fun! the options are on the top</h1>
-		</div>
-			<div class=" button go-button"> START</div>
+			<div class=" button start"> START</div>
 	</div>
 	<script src='https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js'></script>
 	<script src='main.js'></script>
 	<script src='js/Sound.js'></script>
 	<script src='js/GridManager.js'></script>
-	<script src='js/Events.js'></script>
 	<script src="js/Player.js"></script>
+	<script src='js/Events.js'></script>
 	<script src="js/App.js"></script>
 
 	<!-- <script src='alternative.js'></script> -->

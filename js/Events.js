@@ -1,55 +1,114 @@
 socket.addEventListener('noteChange', (obj)=>{
     console.log('fired');
+    console.log(obj);
+    app.state.sounds[obj.id].color = obj.color;
+    console.log(app.state.sounds);
     if(obj.session == app.state.sessionType) {     
-        app.player.toggleNote(obj.id);
-        console.log(app.state.sounds);
+        app.player.toggleNote(obj);
+        console.log(obj);
         socket.emit('soundUpdate', {session:app.state.sessionType, sounds:app.state.sounds});
     }
 });
 socket.addEventListener('loaded', (soundObj)=>{
     
-    // console.log(app.state.sounds);
+    console.log(app.state.sounds);
     if(soundObj) {
        for (var i = 1; i < app.state.noteCount+1; i++) {
            if(app.state.sounds[i].play !== soundObj[i].play) {
                 app.state.sounds[i].play = soundObj[i].play;
-           };
+           }
            // console.log(app.state.soundsObj[i].play);
            if(soundObj[i].play) {
                 app.state.sounds[i].note.classList.remove('new');
                app.state.sounds[i].note.classList.add('active');
+               if(soundObj[i].color){
+                app.state.sounds[i].note.classList.add(soundObj[i].color);
+               }
            }
        }
     }
-
-   // console.log(app.state.sounds);
+});
+socket.addEventListener('createSession', (obj)=>{
+    console.log(sessionName);
+    if(obj.name == sessionName) {
+        if(obj.valid) {
+            document.querySelector('.sessionMessage').innerHTML = `Congrats ${obj.name} is available click start to begin`;
+            options.type = obj.name;
+        }else {
+            document.querySelector('.sessionMessage').innerHTML = `Someone already has ${obj.name}`;
+        } 
+    }
+});
+socket.addEventListener('joinSession', (obj)=>{
+    console.log(obj.valid, obj.name);
+    if(obj.name == sessionName) {
+        if(obj.valid) {
+            document.querySelector('.sessionMessage').innerHTML = `Congrats your friends at ${obj.name} are waiting click start to join`;
+            options.type = obj.name;
+            options.width = (obj.sounds.length-1)/16;
+            join = true;
+            console.log(obj.sounds.length-1)
+            
+        }else {
+            document.querySelector('.sessionMessage').innerHTML = ` Sorry ${obj.name} doesn't exist`;
+        } 
+    }
 });
 
     let options = {};
-document.body.addEventListener('click',(e) => {
-    console.dir(e.target);
-    if(e.target.classList.contains('single-play')) {
-        options.type = 'single';
-        // console.log(options)
-        e.target.classList.add('selected')
-    } else if(e.target.classList.contains('multi-play')) {
-        options.type = 'multi'
-        e.target.classList.add('selected')
+let noteSelection = [];
+let mouseDown = false
+let join
+
+// Drag  selection
+document.querySelector('.blocks').addEventListener('mousedown', (e)=> {
+    mouseDown = true;
+})
+document.querySelector('.blocks').addEventListener('mouseup', (e)=> {
+    mouseDown = false;
+    noteSelection = []
+})
+
+document.querySelector('.blocks').addEventListener('mousemove', (e)=> {
+    console.log(noteSelection.indexOf(e.target.id));
+    if(mouseDown) {
+         if(noteSelection.indexOf(e.target.id) < 0) {
+            noteSelection.push(e.target.id);
+            console.log(noteSelection);
+            if(app.state.sessionType == 'single') {
+                app.player.toggleNote({id:e.target.id, color:app.state.color});
+            } else {
+                socket.emit('noteChange',{session:app.state.sessionType, id:e.target.id, color:app.state.color} );     
+            }
+        }
     }
-    if(e.target.classList.contains('short')) {
-        options.width = 8;
-        e.target.classList.add('selected')
-    } else if(e.target.classList.contains('medium')) {
-        options.width = 16;
-        e.target.classList.add('selected')
-    } else if(e.target.classList.contains('long')) {
-        // app.changeState({gridWidth:32,gridSize:true});
-        options.width = 32;
-        e.target.classList.add('selected')
+  
+})
+document.querySelector('.overlay').addEventListener('click', (e)=> {
+    if(e.target.dataset.play) {
+        options.type = e.target.dataset.play;
+    } else if (e.target.dataset.width) {
+        options.width = e.target.dataset.width;
     }
-    if(e.target.classList.contains('go-button')) {
+    if(e.target.dataset) {
+        let buttonFamily = e.target.parentNode.children;
+        for (var i = 0; i < buttonFamily.length; i++) {
+           buttonFamily[i].classList.contains('selected') ? buttonFamily[i].classList.remove('selected') : null 
+        }
+        e.target.classList.add('selected');
+    }
+    if(e.target.dataset.session) {
+        sessionName = document.querySelector(`[name="${e.target.dataset.session}Session"]`).value;
+        if(sessionName) {
+            socket.emit(`${e.target.dataset.session}Session`, sessionName);
+        } else {
+            document.querySelector('.sessionMessage').innerHTML = "That's blank bro";
+        }
+    }
+    if(e.target.classList.contains('start')) {
         if(options.width && options.type || join) {
             document.querySelector('.overlay').classList.add('hide');
+            document.querySelector('.toggleMenu').classList.add('shown');
             console.log(options);
             app = new App(options);
             app.init()
@@ -64,104 +123,35 @@ document.body.addEventListener('click',(e) => {
             }
         }
     }
-    if(e.target.classList.contains('createSession')) {
-        console.log('fired')
-        sessionName = document.querySelector('[name="createSession"]').value;
-        if(sessionName) {
-            socket.emit('createSession', sessionName);
-        } else {
-            document.querySelector('.sessionMessage').innerHTML = "That's blank bro"
-        }
-
-
-    } else if(e.target.classList.contains('joinSession')) {
-        console.log('fired');
-        sessionName = document.querySelector('[name="joinSession"]').value;
-        if(sessionName) {
-            socket.emit('joinSession', sessionName);
-        } else {
-            document.querySelector('.sessionMessage').innerHTML = "That's blank bro"
-        }
-        
+    if(e.target.dataset.open) {
+        document.querySelector('.open') ? document.querySelector('.open').classList.remove('open'):null
+        document.querySelector("."+e.target.dataset.open).classList.toggle('open')
     }
-    socket.addEventListener('createSession', (obj)=>{
-        console.log(sessionName);
-        if(obj.name == sessionName) {
-            if(obj.valid) {
-                document.querySelector('.sessionMessage').innerHTML = `Congrats ${obj.name} is available click start to begin`;
-                options.type = obj.name;
-            }else {
-                document.querySelector('.sessionMessage').innerHTML = `Someone already has ${obj.name}`;
-            } 
-        }
-    });
-    socket.addEventListener('joinSession', (obj)=>{
-        console.log(obj.valid, obj.name);
-        if(obj.name == sessionName) {
-            if(obj.valid) {
-                document.querySelector('.sessionMessage').innerHTML = `Congrats your friends at ${obj.name} are waiting click start to join`;
-                options.type = obj.name;
-                options.width = (obj.sounds.length-1)/16;
-                join = true;
-                console.log(obj.sounds.length-1)
-                
-            }else {
-                document.querySelector('.sessionMessage').innerHTML = ` Sorry ${obj.name} doesn't exist`;
-            } 
-        }
-    });
-
-});
-let noteSelection = [];
-let mouseDown = false
-document.querySelector('.blocks').addEventListener('mousedown', (e)=> {
-    // if(e.target.classList.contains('block')) {
-    //     if(app.state.sessionType == 'single') {
-    //         app.player.toggleNote(e.target.id);
-    //     } else {
-    //         socket.emit('noteChange',{session:app.state.sessionType, id:e.target.id} );     
-    //     }
-    // } 
-    // console.log('mouseDown');
-
-    mouseDown = true;
 })
-document.querySelector('.blocks').addEventListener('mouseup', (e)=> {
-    // console.log('mouseUp');
-    mouseDown = false;
-    noteSelection = []
-})
-
-document.querySelector('.blocks').addEventListener('mousemove', (e)=> {
-    console.log(noteSelection.indexOf(e.target.id));
-    if(mouseDown) {
-         if(noteSelection.indexOf(e.target.id) < 0) {
-            noteSelection.push(e.target.id);
-            console.log(noteSelection);
-            if(app.state.sessionType == 'single') {
-                app.player.toggleNote(e.target.id);
-            } else {
-                socket.emit('noteChange',{session:app.state.sessionType, id:e.target.id} );     
-            }
-        }
+document.querySelector('.options').addEventListener('click', function(e){
+    if(e.target.classList.contains('slider')) {
+        app.player.changeTempo(e.target.value);
+    } else if(e.target.dataset.color) {
+        let colors = e.target.parentNode.children;
+        for (var i = 0; i < colors.length; i++) {
+            colors[i].classList.remove('active-color');
+        };
+        e.target.classList.add('active-color');
+       app.player.changeColor(e.target.dataset.color);
+    } else if(e.target.classList.contains('select')) {
+        console.log(e.target.value);
+        app.state.frequency = keys[e.target.value];
+        app.player.changeKey();
     }
-  
 })
-document.querySelector('.overlay').addEventListener('click', function(e) {
-    console.log('clicked');
+document.querySelector('.toggleMenu').addEventListener('click',function(e) {
+        console.log(this);
+        document.querySelector('.options').classList.toggle('active');
+        this.classList.toggle('active');
 })
-document.querySelector('.blocks').addEventListener('click' , function(e) {
-    console.log('blocks');
-});
-function test() {
-    socket.emit('rooms', {test:test,test:test});
-}
-socket.addEventListener('rooms',function(obj) {
-    console.log('recieved')
-    console.dir(obj);
+document.querySelector('.slider').addEventListener('mouseup', function(e){
+     document.querySelector('.current-bpm').innerHTML = this.value;
 })
-
-
     
 
 
