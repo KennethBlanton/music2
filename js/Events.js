@@ -1,6 +1,4 @@
 socket.addEventListener('noteChange', (obj)=>{
-    console.log('fired');
-    console.log(obj);
     app.state.sounds[obj.id].color = obj.color;
     console.log(app.state.sounds);
     if(obj.session == app.state.sessionType) {     
@@ -57,11 +55,18 @@ socket.addEventListener('joinSession', (obj)=>{
 
     let options = {};
 let noteSelection = [];
-let mouseDown = false
+let mouseDown = false;
+let firstClick;
 let join
 
 // Drag  selection
 document.querySelector('.blocks').addEventListener('mousedown', (e)=> {
+    firstClick = e.target;
+    if(app.state.sessionType == 'single') {
+        app.player.toggleNote({id:e.target.id, color:app.state.color});
+    } else {
+        socket.emit('noteChange',{session:app.state.sessionType, id:e.target.id, color:app.state.color} );     
+    }
     mouseDown = true;
 })
 document.querySelector('.blocks').addEventListener('mouseup', (e)=> {
@@ -72,13 +77,15 @@ document.querySelector('.blocks').addEventListener('mouseup', (e)=> {
 document.querySelector('.blocks').addEventListener('mousemove', (e)=> {
     console.log(noteSelection.indexOf(e.target.id));
     if(mouseDown) {
-         if(noteSelection.indexOf(e.target.id) < 0) {
-            noteSelection.push(e.target.id);
-            console.log(noteSelection);
-            if(app.state.sessionType == 'single') {
-                app.player.toggleNote({id:e.target.id, color:app.state.color});
-            } else {
-                socket.emit('noteChange',{session:app.state.sessionType, id:e.target.id, color:app.state.color} );     
+        if(e.target !== firstClick) {
+            if(noteSelection.indexOf(e.target.id) < 0) {
+                noteSelection.push(e.target.id);
+                console.log(noteSelection);
+                if(app.state.sessionType == 'single') {
+                    app.player.toggleNote({id:e.target.id, color:app.state.color});
+                } else {
+                    socket.emit('noteChange',{session:app.state.sessionType, id:e.target.id, color:app.state.color} );     
+                }
             }
         }
     }

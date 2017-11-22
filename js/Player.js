@@ -1,15 +1,23 @@
 class Player {
 	toggleNote(obj) {
-		// console.log(id);
+		let classList = document.getElementById(''+obj.id).classList;
+		for (var i = classList.length - 1; i >= 0; i--) {
+			if(classList[i] !== "block" && classList[i] !== "new" && classList !== "active") {
+				classList.remove(classList[i]);
+			}
+		}
+		console.log(classList.length);
 	    if(!app.state.sounds[obj.id].play) {
-	    	console.log(obj.color)
+	    	console.log(document.getElementById(''+obj.id).classList)
 	        document.getElementById(''+obj.id).classList.add('active', obj.color);
 	        app.state.sounds[obj.id].play = true;
 	        if(!document.getElementById(''+obj.id).classList.contains('new')) {
 	            document.getElementById(''+obj.id).classList.add('new');
 	        }
 	    } else {
+
 	        document.getElementById(''+obj.id).classList.remove('active', obj.color);
+	        console.log(document.getElementById(''+obj.id).classList)
 	        app.state.sounds[obj.id].play = false;
 	    }
 	}
